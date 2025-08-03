@@ -6,15 +6,23 @@
   "packageRules": [
     {
       "description": "Kotlin version should be managed in coordinate with Intellij Platform minimum version",
-      "matchDatasources": ["maven"],
-      "matchDepPatterns": ["^org.jetbrains.kotlin:kotlin"],
-      "enabled": false
+      "matchDatasources": [
+        "maven"
+      ],
+      "enabled": false,
+      "matchDepNames": [
+        "/^org.jetbrains.kotlin:kotlin/"
+      ]
     },
     {
       "description": "Kotlin version should be managed in coordinate with Intellij Platform minimum version",
-      "matchDatasources": ["maven"],
-      "matchDepPatterns": ["^org.jetbrains.kotlin.jvm"],
-      "enabled": false
+      "matchDatasources": [
+        "maven"
+      ],
+      "enabled": false,
+      "matchDepNames": [
+        "/^org.jetbrains.kotlin.jvm/"
+      ]
     }
   ]
 }
