@@ -1,12 +1,13 @@
 [versions]
 
 # plugins
-kotlin = "1.7.0"
-gradleIntellijPlugin = "1.17.3"
+kotlin = "1.8.0"
+gradleIntellijPlugin = "2.7.0"
 grammerKit = "2022.3.2.2"
 changelog = "2.2.0"
 gitVersion = "4.0.0"
 
+junit4 = "4.13.2"
 junit = "5.10.2"
 
 [libraries]
@@ -15,6 +16,7 @@ junit = "5.10.2"
 kotlinTest = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlinTestJdk7 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk7", version.ref = "kotlin" }
 
+junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 junitBom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junitPlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 junitJupiterEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine" }
@@ -23,7 +25,7 @@ jnintVintageEngine = { group = "org.junit.vintage", name = "junit-vintage-engine
 [plugins]
 
 kotlin =  { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-gradleIntellijPlugin = { id = "org.jetbrains.intellij", version.ref = "gradleIntellijPlugin" }
+gradleIntellijPlugin = { id = "org.jetbrains.intellij.platform", version.ref = "gradleIntellijPlugin" }
 grammerKit = { id = "org.jetbrains.grammarkit", version.ref = "grammerKit" }
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
 gitVersion = { id = "com.palantir.git-version", version.ref = "gitVersion" }
