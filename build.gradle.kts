@@ -2,6 +2,7 @@ import org.jetbrains.grammarkit.tasks.GenerateLexerTask
 import org.jetbrains.grammarkit.tasks.GenerateParserTask
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 val versionDetails: groovy.lang.Closure<com.palantir.gradle.gitversion.VersionDetails> by extra
 
@@ -29,9 +30,18 @@ java.targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
 dependencies {
+    intellijPlatform {
+        intellijIdeaCommunity("2023.1")
+        testFramework(TestFrameworkType.Platform)
+    }
+
+    testImplementation(libs.junit4)
     testImplementation(libs.kotlinTest)
     testImplementation(libs.kotlinTestJdk7)
     testImplementation(platform(libs.junitBom))
@@ -46,7 +56,7 @@ grammarKit {
     grammarKitRelease.set("2021.1.2")
 }
 
-task("generateLexerTask", GenerateLexerTask::class) {
+tasks.register("generateLexerTask", GenerateLexerTask::class) {
     // source flex file
     sourceFile.set(file("src/grammar/gn.flex"))
 
@@ -57,7 +67,7 @@ task("generateLexerTask", GenerateLexerTask::class) {
     purgeOldFiles = true
 }
 
-task("generateParserTask", GenerateParserTask::class) {
+tasks.register("generateParserTask", GenerateParserTask::class) {
     // source bnf file
     sourceFile.set(file("src/grammar/gn.bnf"))
 
@@ -74,9 +84,15 @@ task("generateParserTask", GenerateParserTask::class) {
     purgeOldFiles = true
 }
 
-intellij {
-    version = "2022.3"
-    sandboxDir = "tmp/sandbox"
+intellijPlatform {
+    sandboxContainer.set(file("tmp/sandbox"))
+
+    pluginConfiguration {
+        ideaVersion {
+            sinceBuild = "231"
+            untilBuild = ""
+        }
+    }
 }
 
 changelog {
@@ -119,7 +135,7 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-val intellijSinceBuild = "223"
+val intellijSinceBuild = "231"
 val intellijUntilBuild = ""
 
 tasks.patchPluginXml {
@@ -145,7 +161,7 @@ tasks.publishPlugin {
 
 // Helper build task to create a local updatePlugins.xml file to serve updates
 // locally.
-task("serverPlugins") {
+tasks.register("serverPlugins") {
     dependsOn(tasks.named("buildPlugin"))
     group = "intellij"
     doLast {
