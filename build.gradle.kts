@@ -4,6 +4,7 @@ import org.jetbrains.changelog.Changelog
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
+
 val versionDetails: groovy.lang.Closure<com.palantir.gradle.gitversion.VersionDetails> by extra
 
 plugins {
@@ -107,6 +108,12 @@ intellijPlatform {
                 )
             }
         })
+    }
+
+    pluginVerification {
+        ides {
+            recommended()
+        }
     }
 }
 
