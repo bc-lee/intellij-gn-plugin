@@ -94,7 +94,9 @@ intellijPlatform {
     pluginConfiguration {
         ideaVersion {
             sinceBuild.set(intellijSinceBuild)
-            untilBuild.set(intellijUntilBuild)
+            if (intellijUntilBuild.isNotBlank()) {
+                untilBuild.set(intellijUntilBuild)
+            }
         }
 
         val changelog = project.changelog // local variable for configuration cache compatibility
