@@ -84,14 +84,29 @@ tasks.register("generateParserTask", GenerateParserTask::class) {
     purgeOldFiles = true
 }
 
+val intellijSinceBuild = "231"
+val intellijUntilBuild = ""
+
 intellijPlatform {
     sandboxContainer.set(file("tmp/sandbox"))
 
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "231"
-            untilBuild = ""
+            sinceBuild.set(intellijSinceBuild)
+            untilBuild.set(intellijUntilBuild)
         }
+
+        val changelog = project.changelog // local variable for configuration cache compatibility
+        changeNotes.set(providers.gradleProperty("intellijGnVersion").map { pluginVersion ->
+            with(changelog) {
+                renderItem(
+                    (getOrNull(pluginVersion) ?: getUnreleased())
+                        .withHeader(false)
+                        .withEmptySections(false),
+                    Changelog.OutputType.HTML,
+                )
+            }
+        })
     }
 }
 
@@ -133,26 +148,6 @@ sourceSets {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-val intellijSinceBuild = "231"
-val intellijUntilBuild = ""
-
-tasks.patchPluginXml {
-    sinceBuild = intellijSinceBuild
-    untilBuild = intellijUntilBuild
-    val changelog = project.changelog // local variable for configuration cache compatibility
-    // Get the latest available change notes from the changelog file
-    changeNotes = providers.gradleProperty("intellijGnVersion").map { pluginVersion ->
-        with(changelog) {
-            renderItem(
-                (getOrNull(pluginVersion) ?: getUnreleased())
-                    .withHeader(false)
-                    .withEmptySections(false),
-                Changelog.OutputType.HTML,
-            )
-        }
-    }
 }
 
 tasks.publishPlugin {
