@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+- Change minimum supported IntelliJ version to 2023.1
+
 ## [0.1.5] - 2024-04-06
 
 ### Changed
