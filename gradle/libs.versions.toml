@@ -8,7 +8,7 @@ changelog = "2.2.0"
 gitVersion = "4.0.0"
 
 junit4 = "4.13.2"
-junit = "5.10.2"
+junit = "5.14.0"
 
 [libraries]
 
