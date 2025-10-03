@@ -38,6 +38,7 @@ repositories {
 
 dependencies {
     intellijPlatform {
+        @Suppress("DEPRECATION")
         intellijIdeaCommunity("2023.1")
         testFramework(TestFrameworkType.Platform)
     }
@@ -114,7 +115,14 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            recommended()
+            // IC (IntelliJ IDEA Community) is no longer available starting from 2025.3 (build 253)
+            select {
+                sinceBuild.set(intellijSinceBuild)
+                untilBuild.set("252.*")
+            }
+
+            // TODO: Replace EAP with the release version when available
+            create("IU", "253.22441.33")
         }
     }
 }
