@@ -3,7 +3,7 @@
 # plugins
 kotlin = "2.0.21"
 gradleIntellijPlugin = "2.12.0"
-grammerKit = "2022.3.2.2"
+grammerKit = "2023.3.0.3"
 changelog = "2.5.0"
 gitVersion = "5.0.0"
 
