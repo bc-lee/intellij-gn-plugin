@@ -141,14 +141,10 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            // IC (IntelliJ IDEA Community) is no longer available starting from 2025.3 (build 253)
             select {
-                sinceBuild.set(intellijSinceBuild)
-                untilBuild.set("252.*")
+                sinceBuild = providers.gradleProperty("pluginSinceBuild")
+                untilBuild = provider { "${providers.gradleProperty("pluginSinceBuild").get()}.*" }
             }
-
-            // TODO: Replace EAP with the release version when available
-            create("IU", "253.22441.33")
         }
     }
 }
