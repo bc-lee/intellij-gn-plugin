@@ -41,13 +41,12 @@ repositories {
 }
 
 dependencies {
-    add("intellijPlatformGrammarKit", "org.jetbrains:grammar-kit:2022.3.2")
-    add("intellijPlatformJFlex", "org.jetbrains.intellij.deps.jflex:jflex:1.9.2")
-
     intellijPlatform {
         intellijIdeaCommunity(providers.gradleProperty("platformVersion")) {
             useInstaller = false
         }
+        grammarKit("2022.3.2")
+        jflex("1.9.2")
 
         bundledPlugins(
             providers.gradleProperty("platformBundledPlugins").map {
