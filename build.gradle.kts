@@ -1,6 +1,7 @@
 import org.jetbrains.grammarkit.tasks.GenerateLexerTask
 import org.jetbrains.grammarkit.tasks.GenerateParserTask
 import org.jetbrains.changelog.Changelog
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
@@ -16,6 +17,8 @@ plugins {
     alias(libs.plugins.gitVersion)
 }
 
+group = providers.gradleProperty("pluginGroup").get()
+
 val gitDetails = versionDetails()
 version = if (gitDetails.isCleanTag) {
     gitDetails.version
@@ -26,8 +29,9 @@ version = if (gitDetails.isCleanTag) {
     } + "-dev." + gitDetails.gitHash
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_17
-java.targetCompatibility = JavaVersion.VERSION_17
+kotlin {
+    jvmToolchain(21)
+}
 
 repositories {
     mavenCentral()
@@ -39,7 +43,23 @@ repositories {
 dependencies {
     intellijPlatform {
         @Suppress("DEPRECATION")
-        intellijIdeaCommunity("2023.1")
+        intellijIdeaCommunity(providers.gradleProperty("platformVersion"))
+
+        bundledPlugins(
+            providers.gradleProperty("platformBundledPlugins").map {
+                it.split(',').map(String::trim).filter(String::isNotEmpty)
+            },
+        )
+        plugins(
+            providers.gradleProperty("platformPlugins").map {
+                it.split(',').map(String::trim).filter(String::isNotEmpty)
+            },
+        )
+        bundledModules(
+            providers.gradleProperty("platformBundledModules").map {
+                it.split(',').map(String::trim).filter(String::isNotEmpty)
+            },
+        )
         testFramework(TestFrameworkType.Platform)
     }
 
@@ -93,8 +113,11 @@ intellijPlatform {
     sandboxContainer.set(file("tmp/sandbox"))
 
     pluginConfiguration {
+        name = providers.gradleProperty("pluginName")
+        version = project.provider { project.version.toString() }
+
         ideaVersion {
-            sinceBuild.set(intellijSinceBuild)
+            sinceBuild = providers.gradleProperty("pluginSinceBuild")
             if (intellijUntilBuild.isNotBlank()) {
                 untilBuild.set(intellijUntilBuild)
             }
@@ -129,10 +152,8 @@ intellijPlatform {
 
 changelog {
     groups.empty()
-}
-
-tasks.named("compileKotlin") {
-    setDependsOn(listOf(tasks.named("generateLexerTask"), tasks.named("generateParserTask")))
+    repositoryUrl = providers.gradleProperty("pluginRepositoryUrl")
+    versionPrefix = ""
 }
 
 tasks.withType<JavaCompile> {
@@ -149,9 +170,9 @@ tasks.withType<JavaCompile> {
 
 tasks.withType<KotlinJvmCompile> {
     val enableWarningAsError = project.findProperty("enableWarningAsError")?.toString()?.toBoolean() ?: false
-    kotlinOptions.jvmTarget = "17"
+    compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
     if (enableWarningAsError) {
-        kotlinOptions.allWarningsAsErrors = true
+        compilerOptions.allWarningsAsErrors.set(true)
     }
 }
 
@@ -167,8 +188,10 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-tasks.publishPlugin {
-    token = providers.environmentVariable("ORG_GRADLE_PROJECT_intellijPublishToken")
+intellijPlatform {
+    publishing {
+        token = providers.environmentVariable("ORG_GRADLE_PROJECT_intellijPublishToken")
+    }
 }
 
 // Helper build task to create a local updatePlugins.xml file to serve updates
@@ -186,5 +209,11 @@ tasks.register("serverPlugins") {
   </plugin>
 </plugins>
 """.trimIndent())
+    }
+}
+
+tasks {
+    wrapper {
+        gradleVersion = providers.gradleProperty("gradleVersion").get()
     }
 }
