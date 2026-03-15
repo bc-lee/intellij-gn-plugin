@@ -1,9 +1,9 @@
+import org.jetbrains.changelog.Changelog
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.grammarkit.tasks.GenerateLexerTask
 import org.jetbrains.grammarkit.tasks.GenerateParserTask
-import org.jetbrains.changelog.Changelog
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 
 val versionDetails: groovy.lang.Closure<com.palantir.gradle.gitversion.VersionDetails> by extra
@@ -42,7 +42,6 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        @Suppress("DEPRECATION")
         intellijIdeaCommunity(providers.gradleProperty("platformVersion")) {
             useInstaller = false
         }
@@ -86,7 +85,7 @@ tasks.register("generateLexerTask", GenerateLexerTask::class) {
     sourceFile.set(file("src/grammar/gn.flex"))
 
     // target directory for lexer
-    targetOutputDir = project.layout.projectDirectory.dir("src/gen/com/google/idea/gn")
+    targetOutputDir = layout.buildDirectory.dir("generated/grammarkit/lexer/com/google/idea/gn").get().asFile
 
     // if set, plugin will remove a lexer output file before generating new one. Default: false
     purgeOldFiles = true
@@ -97,7 +96,7 @@ tasks.register("generateParserTask", GenerateParserTask::class) {
     sourceFile.set(file("src/grammar/gn.bnf"))
 
     // optional, task-specific root for the generated files. Default: none
-    targetRootOutputDir = project.layout.projectDirectory.dir("src/gen")
+    targetRootOutputDir = layout.buildDirectory.dir("generated/grammarkit/parser").get().asFile
 
     // path to a parser file, relative to the targetRoot
     pathToParser = "/com/google/idea/gn/parser/GnParser.java"
@@ -109,9 +108,6 @@ tasks.register("generateParserTask", GenerateParserTask::class) {
     purgeOldFiles = true
 }
 
-val intellijSinceBuild = "231"
-val intellijUntilBuild = ""
-
 intellijPlatform {
     sandboxContainer.set(file("tmp/sandbox"))
 
@@ -121,9 +117,6 @@ intellijPlatform {
 
         ideaVersion {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
-            if (intellijUntilBuild.isNotBlank()) {
-                untilBuild.set(intellijUntilBuild)
-            }
         }
 
         val changelog = project.changelog // local variable for configuration cache compatibility
@@ -146,6 +139,10 @@ intellijPlatform {
                 untilBuild = provider { "${providers.gradleProperty("pluginSinceBuild").get()}.*" }
             }
         }
+    }
+
+    publishing {
+        token = providers.environmentVariable("ORG_GRADLE_PROJECT_intellijPublishToken")
     }
 }
 
@@ -178,19 +175,14 @@ tasks.withType<KotlinJvmCompile> {
 sourceSets {
     main {
         java {
-            srcDir("src/gen")
+            srcDir(layout.buildDirectory.dir("generated/grammarkit/parser"))
+            srcDir(layout.buildDirectory.dir("generated/grammarkit/lexer"))
         }
     }
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-intellijPlatform {
-    publishing {
-        token = providers.environmentVariable("ORG_GRADLE_PROJECT_intellijPublishToken")
-    }
 }
 
 // Helper build task to create a local updatePlugins.xml file to serve updates
@@ -204,7 +196,7 @@ tasks.register("serverPlugins") {
     <<plugin id="com.google.idea.gn" url="http://localhost:8080/gn-${version}.zip" version="$version">
       <name>GN</name>
       <description>Experimental GN plugin for intellij</description>
-    <idea-version since-build="$intellijSinceBuild" />
+    <idea-version since-build="${providers.gradleProperty("pluginSinceBuild").get()}" />
   </plugin>
 </plugins>
 """.trimIndent())
@@ -212,7 +204,18 @@ tasks.register("serverPlugins") {
 }
 
 tasks {
+    named("compileKotlin") {
+        dependsOn("generateLexerTask", "generateParserTask")
+    }
+    named("compileJava") {
+        dependsOn("generateLexerTask", "generateParserTask")
+    }
+
     wrapper {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
+    }
+
+    publishPlugin {
+        dependsOn(patchChangelog)
     }
 }
