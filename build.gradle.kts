@@ -1,7 +1,7 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
-import org.jetbrains.grammarkit.tasks.GenerateLexerTask
-import org.jetbrains.grammarkit.tasks.GenerateParserTask
+import org.jetbrains.intellij.platform.gradle.tasks.GenerateLexerTask
+import org.jetbrains.intellij.platform.gradle.tasks.GenerateParserTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
@@ -12,7 +12,7 @@ plugins {
     id("java")
     alias(libs.plugins.kotlin)
     alias(libs.plugins.gradleIntellijPlugin)
-    alias(libs.plugins.grammerKit)
+    alias(libs.plugins.intellijPlatformGrammarKit)
     alias(libs.plugins.changelog)
     alias(libs.plugins.gitVersion)
 }
@@ -41,6 +41,9 @@ repositories {
 }
 
 dependencies {
+    add("intellijPlatformGrammarKit", "org.jetbrains:grammar-kit:2022.3.2")
+    add("intellijPlatformJFlex", "org.jetbrains.intellij.deps.jflex:jflex:1.9.2")
+
     intellijPlatform {
         intellijIdeaCommunity(providers.gradleProperty("platformVersion")) {
             useInstaller = false
@@ -73,11 +76,6 @@ dependencies {
     }
     testRuntimeOnly(libs.junitJupiterEngine)
     testRuntimeOnly(libs.jnintVintageEngine)
-}
-
-grammarKit {
-    grammarKitRelease.set("2022.3.2")
-    jflexRelease.set("1.9.2")
 }
 
 tasks.register("generateLexerTask", GenerateLexerTask::class) {
