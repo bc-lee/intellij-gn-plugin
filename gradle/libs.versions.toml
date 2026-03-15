@@ -3,7 +3,6 @@
 # plugins
 kotlin = "2.0.21"
 gradleIntellijPlugin = "2.12.0"
-grammerKit = "2023.3.0.3"
 changelog = "2.5.0"
 gitVersion = "5.0.0"
 
@@ -26,6 +25,6 @@ jnintVintageEngine = { group = "org.junit.vintage", name = "junit-vintage-engine
 
 kotlin =  { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 gradleIntellijPlugin = { id = "org.jetbrains.intellij.platform", version.ref = "gradleIntellijPlugin" }
-grammerKit = { id = "org.jetbrains.grammarkit", version.ref = "grammerKit" }
+intellijPlatformGrammarKit = { id = "org.jetbrains.intellij.platform.grammarkit", version.ref = "gradleIntellijPlugin" }
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
 gitVersion = { id = "com.palantir.git-version", version.ref = "gitVersion" }
