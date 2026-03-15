@@ -18,6 +18,7 @@ plugins {
 }
 
 group = providers.gradleProperty("pluginGroup").get()
+val enableWarningAsError = providers.gradleProperty("enableWarningAsError").map(String::toBoolean).orElse(false)
 
 val gitDetails = versionDetails()
 version = if (gitDetails.isCleanTag) {
@@ -77,31 +78,17 @@ dependencies {
     testRuntimeOnly(libs.jnintVintageEngine)
 }
 
-tasks.register("generateLexerTask", GenerateLexerTask::class) {
-    // source flex file
+val generateLexerTask = tasks.register("generateLexerTask", GenerateLexerTask::class) {
     sourceFile.set(file("src/grammar/gn.flex"))
-
-    // target directory for lexer
     targetOutputDir = layout.buildDirectory.dir("generated/grammarkit/lexer/com/google/idea/gn").get().asFile
-
-    // if set, plugin will remove a lexer output file before generating new one. Default: false
     purgeOldFiles = true
 }
 
-tasks.register("generateParserTask", GenerateParserTask::class) {
-    // source bnf file
+val generateParserTask = tasks.register("generateParserTask", GenerateParserTask::class) {
     sourceFile.set(file("src/grammar/gn.bnf"))
-
-    // optional, task-specific root for the generated files. Default: none
     targetRootOutputDir = layout.buildDirectory.dir("generated/grammarkit/parser").get().asFile
-
-    // path to a parser file, relative to the targetRoot
     pathToParser = "/com/google/idea/gn/parser/GnParser.java"
-
-    // path to a directory with generated psi files, relative to the targetRoot
     pathToPsiRoot = "/com/google/idea/gn/psi"
-
-    // if set, plugin will remove a parser output file and psi output directory before generating new ones. Default: false
     purgeOldFiles = true
 }
 
@@ -147,21 +134,14 @@ changelog {
 }
 
 tasks.withType<JavaCompile> {
-    val enableWarningAsError = project.findProperty("enableWarningAsError")?.toString()?.toBoolean() ?: false
-    if (enableWarningAsError) {
-        var compilerArgs = options.compilerArgs
-        if (compilerArgs == null) {
-            compilerArgs = mutableListOf()
-        }
-        compilerArgs.add("-Werror")
-        options.compilerArgs = compilerArgs
+    if (enableWarningAsError.get()) {
+        options.compilerArgs = options.compilerArgs.orEmpty() + "-Werror"
     }
 }
 
 tasks.withType<KotlinJvmCompile> {
-    val enableWarningAsError = project.findProperty("enableWarningAsError")?.toString()?.toBoolean() ?: false
     compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
-    if (enableWarningAsError) {
+    if (enableWarningAsError.get()) {
         compilerOptions.allWarningsAsErrors.set(true)
     }
 }
@@ -181,10 +161,10 @@ tasks.withType<Test> {
 
 tasks {
     named("compileKotlin") {
-        dependsOn("generateLexerTask", "generateParserTask")
+        dependsOn(generateLexerTask, generateParserTask)
     }
     named("compileJava") {
-        dependsOn("generateLexerTask", "generateParserTask")
+        dependsOn(generateLexerTask, generateParserTask)
     }
 
     wrapper {
