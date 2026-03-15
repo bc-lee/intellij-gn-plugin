@@ -77,7 +77,8 @@ dependencies {
 }
 
 grammarKit {
-    grammarKitRelease.set("2021.1.2")
+    grammarKitRelease.set("2022.3.2")
+    jflexRelease.set("1.9.2")
 }
 
 tasks.register("generateLexerTask", GenerateLexerTask::class) {
