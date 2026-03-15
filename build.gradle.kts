@@ -185,24 +185,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-// Helper build task to create a local updatePlugins.xml file to serve updates
-// locally.
-tasks.register("serverPlugins") {
-    dependsOn(tasks.named("buildPlugin"))
-    group = "intellij"
-    doLast {
-      File(layout.buildDirectory.asFile.get(), "distributions/updatePlugins.xml").writeText("""<?xml version="1.0" encoding="UTF-8"?>
-<plugins>
-    <<plugin id="com.google.idea.gn" url="http://localhost:8080/gn-${version}.zip" version="$version">
-      <name>GN</name>
-      <description>Experimental GN plugin for intellij</description>
-    <idea-version since-build="${providers.gradleProperty("pluginSinceBuild").get()}" />
-  </plugin>
-</plugins>
-""".trimIndent())
-    }
-}
-
 tasks {
     named("compileKotlin") {
         dependsOn("generateLexerTask", "generateParserTask")
