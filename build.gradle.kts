@@ -43,7 +43,9 @@ repositories {
 dependencies {
     intellijPlatform {
         @Suppress("DEPRECATION")
-        intellijIdeaCommunity(providers.gradleProperty("platformVersion"))
+        intellijIdeaCommunity(providers.gradleProperty("platformVersion")) {
+            useInstaller = false
+        }
 
         bundledPlugins(
             providers.gradleProperty("platformBundledPlugins").map {
