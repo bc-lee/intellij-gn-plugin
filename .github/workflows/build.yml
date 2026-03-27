@@ -3,16 +3,40 @@ on:
   push:
     branches: [ main ]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag'
+        required: true
 
 jobs:
 
   build:
-    name: Build
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
 
-      - uses: actions/checkout@v4
+      - if: ${{ github.event_name != 'workflow_dispatch' }}
+        uses: actions/checkout@v4
+
+      - if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Validate tag
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        run: |
+          describe_tags=$(git describe --tags --exact-match)
+          if [[ ! "$describe_tags" =~ ^[0-9]+\.[0-9]+\.[0-9]$ ]]; then
+              echo "Tag $describe_tags is not a valid tag name"
+              exit 1
+          fi
+          echo "Building tag $describe_tags"
 
       - uses: actions/setup-java@v4
         with:
@@ -24,46 +48,46 @@ jobs:
         with:
           gradle-home-cache-cleanup: true
 
-      - name: Build plugin
+      - name: Build plugin for push and PR
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         run: ./gradlew buildPlugin -PenableWarningAsError=true
 
-      - name: Prepare Plugin Artifact
+      - name: Build plugin for manual tag run
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: ./gradlew buildPlugin
+
+      - name: Run tests
+        run: ./gradlew check
+
+      - name: Select plugin artifact
         id: artifact
         shell: bash
         run: |
-          cd ./build/distributions
-          FILENAME=`ls *.zip`
-          unzip "$FILENAME" -d content
+          shopt -s nullglob
+          artifacts=(build/distributions/*.zip)
 
-          echo "filename=${FILENAME:0:-4}" >> $GITHUB_OUTPUT
+          if [ "${#artifacts[@]}" -eq 0 ]; then
+            echo "No plugin zip found in build/distributions" >&2
+            exit 1
+          fi
+
+          if [ "${#artifacts[@]}" -ne 1 ]; then
+            echo "Expected exactly one plugin zip, found ${#artifacts[@]}" >&2
+            printf '%s\n' "${artifacts[@]}" >&2
+            exit 1
+          fi
+
+          artifact_path="${artifacts[0]}"
+          artifact_name="$(basename "${artifact_path%.zip}")"
+
+          echo "path=$artifact_path" >> "$GITHUB_OUTPUT"
+          echo "name=$artifact_name" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.artifact.outputs.filename }}
-          path: ./build/distributions/content/*/*
-
-  test:
-    name: Test
-    needs: [ build ]
-    runs-on: ubuntu-latest
-
-    steps:
-
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: zulu
-          java-version: 21
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-home-cache-cleanup: true
-
-      - name: Run Tests
-        run: ./gradlew check
+          name: ${{ steps.artifact.outputs.name }}
+          path: ${{ steps.artifact.outputs.path }}
 
       - name: Collect Tests Result
         if: ${{ failure() }}
