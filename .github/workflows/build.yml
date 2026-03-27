@@ -50,7 +50,7 @@ jobs:
 
       - name: Build plugin for push and PR
         if: ${{ github.event_name != 'workflow_dispatch' }}
-        run: ./gradlew --no-configuration-cache buildPlugin
+        run: ./gradlew --no-configuration-cache buildPlugin -PenableWarningAsError=true
 
       - name: Build plugin for manual tag run
         if: ${{ github.event_name == 'workflow_dispatch' }}
