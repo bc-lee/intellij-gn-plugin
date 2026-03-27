@@ -3,7 +3,6 @@
 // license that can be found in the LICENSE file.
 package com.google.idea.gn.config
 
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
