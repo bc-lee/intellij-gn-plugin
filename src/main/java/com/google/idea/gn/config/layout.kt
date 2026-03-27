@@ -69,9 +69,10 @@ fun pathToDirectoryTextField(
 ): TextFieldWithBrowseButton {
 
   val component = TextFieldWithBrowseButton(null, disposable)
-  component.addBrowseFolderListener(title, null, null,
-      FileChooserDescriptorFactory.createSingleFolderDescriptor(),
-      TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
+  component.addBrowseFolderListener(
+      null,
+      FileChooserDescriptorFactory.createSingleFolderDescriptor().withTitle(title),
+      TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT,
   )
   component.childComponent.document.addDocumentListener(object : DocumentAdapter() {
     override fun textChanged(e: DocumentEvent) {
