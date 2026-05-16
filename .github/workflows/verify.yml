@@ -41,9 +41,42 @@ jobs:
           cache-read-only: true
           gradle-home-cache-cleanup: true
 
+      - name: Show disk usage before verifier
+        shell: bash
+        run: |
+          gradle_home="${GRADLE_USER_HOME:-$HOME/.gradle}"
+          paths=(/ "$GITHUB_WORKSPACE" "$RUNNER_TEMP")
+          if [ -d "$gradle_home" ]; then
+            paths+=("$gradle_home")
+          fi
+
+          echo "== Filesystem free space =="
+          df -h "${paths[@]}"
+
+          echo
+          echo "== Workspace and cache sizes =="
+          du -sh "$GITHUB_WORKSPACE" "$RUNNER_TEMP" "$gradle_home" 2>/dev/null || true
+
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
       - name: Run Plugin Verification tasks
         run: ./gradlew verifyPlugin
+
+      - name: Show disk usage after verifier
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          gradle_home="${GRADLE_USER_HOME:-$HOME/.gradle}"
+          paths=(/ "$GITHUB_WORKSPACE" "$RUNNER_TEMP")
+          if [ -d "$gradle_home" ]; then
+            paths+=("$gradle_home")
+          fi
+
+          echo "== Filesystem free space =="
+          df -h "${paths[@]}"
+
+          echo
+          echo "== Workspace and cache sizes =="
+          du -sh "$GITHUB_WORKSPACE" "$RUNNER_TEMP" "$gradle_home" 2>/dev/null || true
 
       # Collect Plugin Verifier Result
       - name: Collect Plugin Verifier Result
